@@ -1,0 +1,25 @@
+---
+#
+# Usage examples:
+#   - for stg: ansible-playbook -i environments/stage deploy.yml --extra-vars "vault_token=<token>"
+#   - for macOS: export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES; ansible-playbook -i environments/stage deploy.yml --extra-vars "vault_token=<token>"
+#
+
+- hosts: all
+
+  vars:
+    version: "1.39.4"
+    # If you are using hashi-corp vault for storing secrets
+    # secrets: "{{ lookup('community.general.hashi_vault', 'secerts/{{ env }}bitwarden token={{ vault_token }} url=https://vault.example.com:8200') }}"
+
+  roles:
+    - common
+    - bitwarden
+  become: yes
+
+  tasks:
+    - name: Print warning for upgrade
+      debug:
+        msg: "WARNING: Don't forget to run db_configuration.sh if you have upgraded the installation"
+
+...

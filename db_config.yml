@@ -1,0 +1,19 @@
+---
+#
+# Bitwarden MSSQL DB configuration (after upgrade / install)
+# SQL Sciprts: bitwarden-server/util/Migrator/DbScripts (https://github.com/bitwarden/server/tree/master/util/Migrator/DbScripts)
+# Usage examples:
+#   - for macOS: export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES; ansible-playbook db_config.yml --extra-vars "vault_token=<token>,scripts_path=<db_migrator_scripts_path>"
+#
+
+- hosts: 127.0.0.1
+  connection: local
+  vars:
+    secrets: "{{ lookup('community.general.hashi_vault', 'secret/{{ env }}/bitwarden token={{ vault_token }} url=https://vault.example.com:8200') }}"
+
+  tasks:
+    - name: Run db script
+      shell: db_configuration.sh -u "{{ secrets.db_username }}" -p "{{ secrets.db_password }}" -h "{{ secrets.db_hostname }}" -s "{{ scripts_path }}"
+
+
+...

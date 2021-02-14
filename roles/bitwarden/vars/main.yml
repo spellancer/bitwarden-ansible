@@ -1,0 +1,29 @@
+---
+
+# You should provide secrets dictionary variable. Better use external storage like Hashicorp Vault or something (check the deploy.yml)
+
+installation_parent_dir: /opt/bitwarden
+installation_dir: /opt/bitwarden/docker-stub
+backups_dir: /var/backups/bitwarden
+
+global:
+  bitwarden_uid: 1077
+  bitwarden_gid: 1077
+
+  release_url: https://github.com/bitwarden/server/releases/download/v{{ version }}/docker-stub.zip
+
+  license:
+    installation_id: "{{ secrets.installation_id }}"
+    installation_key: "{{ secrets.installation_key }}"
+
+  duo:
+    key: "{{ secrets.duo_key }}"
+
+  yubico:
+    client_id: REPLACE
+    key: REPLACE
+
+  hibp:
+    api_key: REPLACE
+
+...

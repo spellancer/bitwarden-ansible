@@ -1,0 +1,66 @@
+---
+
+- name: Uninstall older versions of Docker packages
+  apt:
+    name: "{{ item }}"
+    state: absent
+  loop:
+    - docker
+    - docker-engine
+    - docker.io
+    - containerd
+    - runc
+
+- name: Install auxiliary packages
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  loop:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - gnupg-agent
+    - software-properties-common
+
+- name: Add docker official GPG key
+  apt_key:
+    id: 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: Register variable with ubuntu release codename
+  command: lsb_release -cs
+  register: ubuntu_release_version
+
+- name: Add stable docker apt repository
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ubuntu_release_version }} stable
+    state: present
+
+- name: Install docker packages
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  loop:
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
+
+- name: Register variable with platform name
+  command: uname -s
+  register: platform_name
+
+- name: Register variable with platform architecture
+  command: uname -m
+  register: platform_arch
+
+- name: Install docker-compose via curl download to /usr/local/bin
+  get_url:
+    url: https://github.com/docker/compose/releases/download/1.26.2/docker-compose-{{ platform_name }}-{{ platform_arch }}
+    dest: /usr/local/bin/docker-compose
+    mode: 0555
+
+
+...

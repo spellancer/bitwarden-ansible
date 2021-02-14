@@ -1,0 +1,46 @@
+---
+
+- name: Check if docker is running
+  command: pgrep docker
+  register: docker_is_running
+  ignore_errors: yes
+
+- name: Install auxiliary packages
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  loop:
+    - byobu
+    - python-apt
+    - atop
+    - htop
+    - acl
+    - python-pip
+    - python3-pip
+    - python-requests
+  become: yes
+
+- name: Install auxiliary python packages
+  pip:
+    name:
+      - docker
+      - docker-compose
+      - requests
+    executable: pip3
+
+- name: If docker is not running, install Docker
+  include_tasks: docker_install.yml
+  when: docker_is_running is failed
+
+- name: Update system, if docker is running
+  apt:
+    update_cache: yes
+    upgrade: "yes"
+  when: docker_is_running is succeeded or upgrade_system
+
+# TODO: configure unattended-upgrades
+# https://phoenixnap.com/kb/automatic-security-updates-ubuntu
+
+
+...

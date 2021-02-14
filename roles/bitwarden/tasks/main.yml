@@ -1,0 +1,148 @@
+---
+# Based on: https://bitwarden.com/help/article/install-on-premise/#manual-docker-installations
+
+- name: Create bitwarden user group
+  group:
+    gid: "{{ global.bitwarden_gid }}"
+    name: bitwarden
+    state: present
+
+- name: Create bitwarden user
+  user:
+    name: bitwarden
+    group: bitwarden
+    shell: /bin/bash
+    groups: docker
+    append: yes
+    uid: "{{ global.bitwarden_uid }}"
+
+- name: Check if docker-stub folder exist (older installation)
+  stat:
+    path: "{{ installation_dir }}/docker"
+  register: old_installation
+
+- name: Stop and remove current containers & volumes via docker-compose down
+  community.general.docker_compose:
+    project_src: "{{ installation_dir }}/docker"
+    state: absent
+  when: old_installation.stat.exists
+
+- name: Create backup directory
+  file:
+    path: "{{ backups_dir }}"
+    state: directory
+    owner: bitwarden
+    group: bitwarden
+    mode: "0655"
+
+- name: Backup existing installation
+  command: mv {{ installation_dir }} {{ backups_dir }}/docker-stub.backup-{{ ansible_date_time.date }}
+  when: old_installation.stat.exists
+
+- name: Create directory to place Bitwarden files
+  file:
+    path: "{{ installation_parent_dir }}"
+    owner: bitwarden
+    group: bitwarden
+    mode: "0655"
+    state: directory
+
+- name: Create directory for Bitwarden version files
+  file:
+    path: "{{ installation_dir }}"
+    owner: bitwarden
+    group: bitwarden
+    mode: "0655"
+    state: directory
+
+- name: Download and extract release files
+  unarchive:
+    src: "{{ global.release_url }}"
+    dest: "{{ installation_dir }}"
+    remote_src: yes
+    owner: bitwarden
+    group: bitwarden
+    mode: "0644"
+
+- name: Replace default docker-compose file
+  copy:
+    src: docker-compose.yml
+    dest: "{{ installation_dir }}/docker/docker-compose.yml"
+    owner: bitwarden
+    group: bitwarden
+    mode: "0644"
+
+- name: Place config file global.override.env from template
+  template:
+    src: global.override.env.j2
+    dest: "{{ installation_dir }}/env/global.override.env"
+    owner: bitwarden
+    group: bitwarden
+    mode: "0644"
+
+- name: Place mssql.override.env config file from template
+  template:
+    src: mssql.override.env.j2
+    dest: "{{ installation_dir }}/env/mssql.override.env"
+    owner: bitwarden
+    group: bitwarden
+    mode: "0644"
+
+# [Maybe not necessary with front nginx] Prepare and place SSL certificate in volume ./identity/identity.pfx for identity container
+# Make sure that you provide your IDENTITY_CERT_PASSWORD to the application’s environment variables at ./env/global.override.env.
+# Copy your SSL certificate and keys to the ./ssl directory. By default, this directory is mapped to the nginx container at /etc/ssl. The ./nginx/default.conf can be adjusted to utilize these certificates as desired.
+
+# Update the server_name, HTTPS redirects, and Content-Security-Policy header with your hostname at ./nginx/default.conf.
+- name: Place nginx defaul.conf file from template
+  template:
+    src: default.conf.j2
+    dest: "{{ installation_dir}}/nginx/default.conf"
+    owner: bitwarden
+    group: bitwarden
+    mode: "0644"
+
+# Update the app-id.json file at ./web/app-id.json to include your hostname’s URL (ex. https://bitwarden.example.com).
+- name: Update app-id.json config from template
+  template:
+    src: app-id.json.j2
+    dest: "{{ installation_dir }}/web/app-id.json"
+    owner: bitwarden
+    group: bitwarden
+    mode: "0644"
+
+# Map the desired user and group id for the Bitwarden containers to run under at ./env/uid.env.
+- name: Update uid.env config from template
+  template:
+    src: uid.env.j2
+    dest: "{{ installation_dir }}/env/uid.env"
+    owner: bitwarden
+    group: bitwarden
+    mode: "0644"
+
+- name: Place encryption certificate pfx for identity container
+  copy:
+    src: "{{ env }}/identity.pfx"
+    dest: "{{ installation_dir }}/identity/identity.pfx"
+    owner: bitwarden
+    group: bitwarden
+    mode: "0644"
+
+# Add SMTP Server CA certificate to the trusted certificates (all docker containers on start will add any *.crt files to the trusted chain)
+- name: Place SMTP CA certificate
+  copy:
+    src: ca.crt
+    dest: "{{ installation_dir }}/ca-certificates/ca.crt"
+    owner: bitwarden
+    group: bitwarden
+    mode: "0644"
+
+# Start your Bitwarden installation and access it at your configured hostname:
+- name: Start Bitwarden containers with docker-compose up
+  community.general.docker_compose:
+    project_src: "{{ installation_dir }}/docker"
+    state: present
+    pull: yes
+
+# TODO: Install tcpdump, net-tools, iproute2, procps, telnet, vim inside docker containers - for debug purposes
+
+...

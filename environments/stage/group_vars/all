@@ -1,0 +1,38 @@
+---
+env: stg
+
+base_service_uri: "{{ environ.protocol }}://{{ environ.fqdn }}"
+
+environ:
+  protocol: https
+  # Change this
+  fqdn: example.com
+
+  db:
+    host: "{{ secrets.db_host }}"
+    port: 1433
+    # Ansible hashicorp vault
+    username: "{{ secrets.db_username }}"
+    password: "{{ secrets.db_password }}"
+    catalog: vault
+    connect_timeout: 30
+
+  smtp:
+    # Change this
+    reply_to: FILL
+    host: FILL
+    port: 587
+    ssl: 'false'
+    username: FILL
+    password: "{{ secrets.smtp_password }}"
+
+  identity:
+    # For pfx file from the 5th step: https://bitwarden.com/help/article/install-on-premise/#manual-docker-installations
+    # It encrypts all data by this certificate, should be long (60+ symbols) RANDOMLY GENERATED STRING
+    cert_pwd: "{{ secrets.identity_pfx }}"
+    # RANDOMLY GENERATED STRING
+    internal_key: "{{ secrets.internal_key }}"
+    # RANDOMLY GENERATED STRING
+    oidc_client_key: "{{ secrets.oidc_client_key }}"
+
+...

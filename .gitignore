@@ -1,0 +1,5 @@
+roles/bitwarden/files/docker-stub
+test.yml
+.DS_Store
+roles/bitwarden/files/identity.crt
+roles/bitwarden/files/identity.key
