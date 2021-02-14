@@ -47,10 +47,16 @@ You need to change and fill something, before proceeding to testing:
 Steps:
 1. Prepare and pass secrets variable (as dictionary) - better from external secrets storage like Hashicorp Vault
 2. Run high-level playbook:
-`ansible-playbook -i environments/stage deploy.yml --extra-vars "vault_token=<token>"`
+```
+ansible-playbook -i environments/stage deploy.yml --extra-vars "vault_token=<token>"
+```
 > If you have problem Ansible client for macOS: `export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES; ansible-playbook -i environments/stage deploy.yml --extra-vars "vault_token=<token>"`
 3. Clone bitwarden server repo: https://github.com/bitwarden/server, this will be required on the next step, to execute SQL scripts in server/util/Migrator/DbScripts directory via SQLCMD
-4. Run the db_configuration.sh (or the db_config.yml playbook with ansible on localhost) script with args: `./db_configuration.sh -u <db_username> -p <db_password> -h <db_fqdn> -s <sql_migrator_db_scripts_path>`. You need to execute this scripts for your release version after every upgrad.
+4. Run the db_configuration.sh (or the db_config.yml playbook with ansible on localhost) script with args:
+```
+./db_configuration.sh -u <db_username> -p <db_password> -h <db_fqdn> -s <sql_migrator_db_scripts_path>
+```
+You need to execute this scripts for **your release version** after **every upgrade**.
 
 > WARNING: Currently there is a problem then upgrading the DB with Migrator/DbScripts - the scripts doesn't finish successfuly and your DB can be broken! Currently discussing it with the Bitwarden Support.
 
@@ -61,7 +67,7 @@ Run the 1,2 steps from "Initial deploy" section.
 
 ### Upgrade installation
 
-https://bitwarden.com/help/updating-on-premise
+Official instructions: https://bitwarden.com/help/updating-on-premise
 
 1. Create the database backup
 2. Check the database backup
