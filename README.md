@@ -1,6 +1,6 @@
 # bitwarden-ansible
 
-Unofficial Ansible playbooks for deploying on-premise installation from the source.
+Unofficial Ansible playbooks for deploying on-premise Bitwarden installation from the source.
 > Warning: You should use the preffered installation way: https://bitwarden.com/help/article/install-on-premise/. Use the manual installation way only if you understand what you are doing and why you need that.
 
 Based the official instructions for the manual installation way:
